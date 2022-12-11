@@ -1,0 +1,15 @@
+firesignal(game.ReplicatedStorage.Bricks.Caption.OnClientEvent, "I dont feel right, i must escape this place quickly..")
+game.Players.LocalPlayer.PlayerGui.MainUI.Statistics.Frame["Floors Escaped"].Text = "Floors Escaped (2)"
+
+while task.wait(0.5) do
+if game.ReplicatedStorage.GameData.LatestRoom.Value == 50 then
+	workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Assets.Light_Fixtures:Destroy()
+	workspace.Ambience_Dark:Play()
+end
+    for i,v in pairs(workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Parts:GetDescendants()) do
+  if v:IsA("BasePart") then
+        v.Material = Enum.Material.Limestone
+        v.Color = Color3.new(0.243137, 0.25098, 0.278431)
+        end
+    end
+end
