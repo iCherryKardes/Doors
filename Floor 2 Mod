@@ -63,6 +63,13 @@ local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/Reg
 			Candle.Parent = game.Players.LocalPlayer.Backpack
 		end
 
+-- Sounds
+game.Workspace.Ambience_Figure.SoundId = game.Workspace.Ambience_FigureIntense.SoundId
+game.Workspace.Ambience_Figure.Volume = "0.7"
+game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1846862303"
+if game.ReplicatedStorage.GameData.LatestRoom.Value == "50" then
+	game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1848156876"
+end
 -- Settings
 firesignal(game.ReplicatedStorage.Bricks.Caption.OnClientEvent, "I dont feel right, i must escape this place quickly..")
 game.Players.LocalPlayer.PlayerGui.MainUI.Statistics.Frame["Floors Escaped"].Text = "Floors Escaped (2)"
@@ -70,7 +77,7 @@ game.Players.LocalPlayer.PlayerGui.MainUI.Statistics.Frame["Floors Escaped"].Tex
 -- Lighting Setup
 game.Lighting.Caves.Enabled = true
 game.Lighting.Bloom.Enabled = true
-game.Lighting.FogEnd = "50"
+game.Lighting.FogEnd = "75"
 game.Lighting.FogStart = "10"
 
 -- Figure Room Setup (50)
@@ -88,7 +95,7 @@ if game.ReplicatedStorage.GameData.LatestRoom.Value == 100 then
 end
 
 -- Room Setup (Loop)
-while task.wait(0.5) do
+while task.wait(0.000005) do
 game.Players.LocalPlayer.PlayerGui.MainUI.Statistics.Frame["Floors Escaped"].Text = "Floors Escaped (2)" -- if you escaped it will make it floors escaped 2
     for i,v in pairs(workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Parts:GetDescendants()) do
   if v:IsA("BasePart") then
@@ -100,4 +107,6 @@ game.Players.LocalPlayer.PlayerGui.MainUI.Statistics.Frame["Floors Escaped"].Tex
 	local roomdoor = game.Workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Door.Door
 		roomdoor.Material = "Slate"
 		roomdoor.Sign.Material = "Slate"
-end
+		game.Lighting.FogEnd = "75"
+		game.Lighting.FogStart = "10"
+	end
