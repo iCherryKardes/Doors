@@ -153,14 +153,7 @@ GameTab:CreateButton({
 GameTab:CreateButton({
 	Name = "Winter Theme",
 	Callback = function()
-		while task.wait(0.005) do
-    for i,v in pairs(workspace.CurrentRooms[game.ReplicatedStorage.GameData.LatestRoom.Value].Parts:GetDescendants()) do
-  if v:IsA("BasePart") then
-        v.Material = Enum.Material.Limestone
-        v.Color = Color3.new(62, 64, 71)
-          end
-    end
-end
+		loadstring(game:HttpGet("https://raw.githubusercontent.com/iCherryKardes/Doors/main/Christmas%20Theme"))()
 	end,
 })
 
