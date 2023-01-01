@@ -1,1 +1,409 @@
+local player = game.Players.LocalPlayer
 
+player.Chatted:Connect(function(msg)
+	if msg == "!rj" then
+		local tpService = game:GetService("TeleportService")
+		tpService:Teleport(game.PlaceId)
+	end
+end)
+
+local tweenService = game:GetService("TweenService")
+local char = player.Character
+local roomsFolder = workspace.CurrentRooms
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local possibleRoomsFolder = Instance.new("Folder")
+possibleRoomsFolder.Name = "PossibleRooms"
+possibleRoomsFolder.Parent = replicatedStorage
+
+local furnitureFolder = Instance.new("Folder")
+furnitureFolder.Parent = replicatedStorage
+furnitureFolder.Name = "Furniture"
+
+local itemsFolder = Instance.new("Folder", replicatedStorage)
+itemsFolder.Name = "Items"
+
+local itemToolsFolder = Instance.new("Folder", replicatedStorage)
+itemToolsFolder.Name = "ItemTools"
+
+local hiding = false
+
+local furnitureTable = {
+	closet = game:GetObjects("rbxassetid://11872886232")[1]
+}
+local possibleRoomsTable = {
+	type1 = game:GetObjects("rbxassetid://11855007298")[1],
+	type2 = game:GetObjects("rbxassetid://11855177671")[1],
+	type3 = game:GetObjects("rbxassetid://11856347001")[1],
+	type4 = game:GetObjects("rbxassetid://11863787041")[1]
+}
+
+local itemsTable = {
+	--template = game:GetObjects("rbxassetid://")[1]
+	candle = game:GetObjects("rbxassetid://11888716112")[1]
+}
+
+local itemToolsTable = {
+	CandleTool = game:GetObjects("rbxassetid://11888717583")[1]
+}
+
+for _, item in pairs(itemsTable) do
+	item.Parent = itemsFolder
+end
+
+for _, itemTool in pairs(itemToolsTable) do
+	itemTool.Parent = itemToolsFolder
+	print(itemTool.Name)
+end
+
+for _, possibleRoom in pairs(possibleRoomsTable) do
+	possibleRoom.Parent = possibleRoomsFolder
+end
+
+for _, furniture in pairs(furnitureTable) do
+	furniture.Parent = furnitureFolder
+end
+
+local possibleFurniture = furnitureFolder:GetChildren()
+
+local possibleRooms = possibleRoomsFolder:GetChildren()
+
+for _, room in pairs(roomsFolder:GetChildren()) do
+	if room.Name ~= "0" then
+		room:Destroy()
+	end
+end
+
+for _, part in pairs(roomsFolder:GetDescendants()) do
+	if part.Name == "Door" and part:IsA("Model") and part:FindFirstChild("Door") then
+		part:Destroy()
+	end
+end
+
+local lastTurnDirection = nil
+
+local door = game:GetObjects("rbxassetid://11855464481")[1]
+door.Parent = replicatedStorage
+door.Hidden.Transparency = 1
+
+local function closetPlayerLeave(player, model)
+	local char = player.Character
+	if not char then return end
+	
+	char.Humanoid.AutoRotate = false
+	model.HasPlayer.Value = nil
+	print("player left closet")
+	model.Main.SoundExit:Play()
+	char.HumanoidRootPart.Anchored = false
+	char:PivotTo(model.Main.CFrame * CFrame.new(0,0,-3))
+end
+
+local function closetPlayerEnter(player, model)
+	local char = player.Character
+	if not char then return end
+	
+	print("closet now has " .. player.Name)
+	
+	char.Humanoid.AutoRotate = false
+	model.HasPlayer.Value = player
+	model.Main.SoundEnter:Play()
+	char.HumanoidRootPart.Anchored = true
+	hiding = true
+	char:PivotTo(model.Main.CFrame * CFrame.new(0,0,0.25))
+end
+
+local function closetNew(template)
+	local model = furnitureFolder.Wardrobe:Clone()
+	model:PivotTo(template.CFrame)
+	model.Parent = template.Parent
+	
+	local hasPlayer = Instance.new("ObjectValue")
+	hasPlayer.Name = "HasPlayer"
+	hasPlayer.Parent = model
+	
+	local outsidePrompt = model.Outside.HidePrompt
+	outsidePrompt.MaxActivationDistance = 10
+	
+	local insidePrompt = model.Inside.HidePrompt
+	insidePrompt.Enabled = false
+	insidePrompt.MaxActivationDistance = 25
+	
+	outsidePrompt.Triggered:Connect(function(player)
+		if hasPlayer.Value == nil then
+			closetPlayerEnter(player, model)
+			outsidePrompt.Enabled = false
+			insidePrompt.Enabled = true
+			print(insidePrompt.Enabled)
+			print("player entered closet")
+		end
+	end)
+	
+	insidePrompt.Triggered:Connect(function(player)
+		if hasPlayer.Value == player then
+			closetPlayerLeave(player, model)
+			outsidePrompt.Enabled = true
+			insidePrompt.Enabled = false
+			print("player left closet")
+		end
+	end)
+	
+	template:Destroy()
+end
+
+local function itemNew(location)
+	local possibleItems = itemsFolder:GetChildren()
+	local randomItem = possibleItems[Random.new():NextInteger(1, #possibleItems)]:Clone()
+	
+	randomItem.Parent = workspace
+	randomItem:PivotTo(location)
+	
+	return randomItem
+end
+
+local function furnishRoom(roomModel)
+	local roomItemLocations = {}
+	
+	if roomModel:FindFirstChild("Furniture") then
+		local templates = roomModel.Furniture:GetChildren()
+		for i, part in ipairs(templates) do
+			if part.Name == "Closet" then
+				closetNew(part)
+			end
+		end
+	end
+end
+
+local function open(doorModel)
+	doorModel.Door.Open:Play()
+	if doorModel:FindFirstChild("Light") then
+		doorModel.Light.Color = Color3.fromRGB(197, 113, 88)
+		doorModel.Light.Attachment.PointLight.Enabled = true
+		doorModel.Light.Hit:Play()
+	end
+	doorModel:SetAttribute("open", true)
+	tweenService:Create(doorModel.Hinge, TweenInfo.new(1), {CFrame = doorModel.Hinge.CFrame * CFrame.Angles(0,math.rad(-90),0)}):Play()
+end
+
+local function doorNew(roomModel, number)
+	local doorModel = door:Clone()
+	doorModel.Parent = workspace
+	doorModel:PivotTo(roomModel.RoomEnd.CFrame * CFrame.new(0,0,0.5))
+	doorModel:SetAttribute("open", false)
+	if number < 10 then
+		doorModel.Gui.Stinker.Text = "000" .. number
+		doorModel.Gui.Stinker.Shadow.Text = "000" .. number
+		doorModel.Gui.Stinker.Highlight.Text = "000" .. number
+	elseif number < 100 then
+		doorModel.Gui.Stinker.Text = "00" .. number
+		doorModel.Gui.Stinker.Shadow.Text = "00" .. number
+		doorModel.Gui.Stinker.Highlight.Text = "00" .. number
+	elseif number < 1000 then
+		doorModel.Gui.Stinker.Text = "0" .. number
+		doorModel.Gui.Stinker.Shadow.Text = "0" .. number
+		doorModel.Gui.Stinker.Highlight.Text = "0" .. number
+	elseif number >= 1000 then
+		doorModel.Gui.Stinker.Text = number
+		doorModel.Gui.Stinker.Shadow.Text = number
+		doorModel.Gui.Stinker.Highlight.Text = number
+	end
+	local Magnitude
+	
+	task.spawn(function()
+		while task.wait() do
+			if doorModel:GetAttribute("open") == false then
+				Magnitude = (doorModel.Hidden.Position - char.HumanoidRootPart.Position).magnitude
+				if Magnitude < 7 then
+					open(doorModel)
+				end
+			end
+		end
+	end)
+
+	return doorModel
+end
+
+local roomInfo = {
+	["0"] = {
+		--startroom
+		["Weight"] = 0
+	},
+	["Empty"] = {
+		--empty room
+		["Weight"] = 6,
+		["Closets"] = true
+	},
+	--["UpStairs"] = {
+	--	--up stairs
+	--	["Stairs"] = true,
+	--	["Weight"] = 1
+	--},
+	--["DownStairs"] = {
+	--	--down stairs
+	--	["Stairs"] = true,
+	--	["Weight"] = 1
+	--},
+	["RightCorner"] = {
+		--right corner
+		["Direction"] = "Right",
+		["Weight"] = 3,
+		["Closets"] = true
+	},
+	["LeftCorner"] = {
+		--left corner
+		["Direction"] = "Left",
+		["Weight"] = 3,
+		["Closets"] = true
+	},
+	--["LeverRoom"] = {
+	--	--lever room
+	--	["PuzzleRoom"] = true,
+	--	["Weight"] = 2
+	--},
+	["CrateRoom"] = {
+		--crate room
+		["Weight"] = 2
+	},
+}
+
+local random = Random.new()
+
+local contextActionService = game:GetService("ContextActionService")
+
+local function GetRandom(prevRoom)
+	local totalWeight = 0
+	for i, info in pairs(roomInfo) do
+		totalWeight = totalWeight + info.Weight
+	end
+	
+	local randomWeight = random:NextNumber(0, totalWeight)
+	local currentWeight = 0
+	local randomRoom = nil
+	
+	for i, info in pairs(roomInfo) do
+		currentWeight = currentWeight + info.Weight
+		if randomWeight <= currentWeight then
+			randomRoom = possibleRoomsFolder[i]
+			break
+		end
+	end
+	
+	if randomRoom == nil then
+		print("random room is nil")
+	end
+	
+	local direction = roomInfo[randomRoom.Name]["Direction"]
+	local hasStairs = roomInfo[randomRoom.Name]["Stairs"]
+	local isPuzzleRoom = roomInfo[randomRoom.Name]["PuzzleRoom"]
+	local hasClosets = roomInfo[randomRoom.Name]["Closets"]
+	
+	local prevHadStairs = roomInfo[prevRoom.Name]["Stairs"]
+	local prevWasPuzzle = roomInfo[prevRoom.Name]["PuzzleRoom"]
+	
+	if (prevRoom.Name == randomRoom.Name)
+		or (direction and direction == lastTurnDirection)
+		or (hasStairs and prevHadStairs)
+		or (isPuzzleRoom and prevWasPuzzle)
+	then
+		return GetRandom(prevRoom)
+	--elseif isPuzzleRoom and isPuzzleRoom == true then
+	--	for _, model in pairs(randomRoom:GetChildren()) do
+	--		if model.Name == "Lever" and model:IsA("Model") then
+	--			local lever = model.Lever
+	--			local promptPart = lever.PromptPart
+	--			local hinge = lever:FindFirstChild("Hinge")
+	--			local proximityPrompt = promptPart:FindFirstChild("Prompt")
+	--			lever:SetAttribute("Pulled", false)
+	--			promptPart.Triggered:Connect(function()
+	--				if lever:GetAttribute("Pulled") == false then
+	--					lever:SetAttribute("Pulled", true)
+	--					tweenService:Create(hinge, TweenInfo.new(1,Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {CFrame = hinge.CFrame * CFrame.Angles(math.rad(-45), 0, 0)}):Play()
+	--					lever.PullSound:Play()
+	--				end
+	--			end)
+	--		end
+	--	end
+	--	return randomRoom
+	else
+		if direction then
+			lastTurnDirection = direction
+		end
+		
+		return randomRoom
+	end
+	
+end
+	
+local function Generate(prevRoom, number)
+	local randomRoom = GetRandom(prevRoom)
+	local newRoom = randomRoom:Clone()
+		
+	newRoom.PrimaryPart = newRoom:FindFirstChild("RoomStart")
+	newRoom:PivotTo(prevRoom.RoomEnd.CFrame)
+	
+	furnishRoom(newRoom)
+	
+	newRoom.Parent = roomsFolder
+	
+	local newDoor = doorNew(newRoom, number)
+	newDoor:GetAttributeChangedSignal("open"):Connect(function()
+		Generate(newRoom, number + 1)
+	end)
+	
+	for _, part in pairs(newRoom:GetChildren()) do
+		if part.Name == "Table" and part:IsA("Model") then
+			local randomNum = math.random(1,1)
+			if randomNum == 1 then
+				local item = itemNew(part.Main.CFrame * CFrame.new(0,2.25,0))
+				print(item.Name)
+				local prompt = item.Handle.Prompt
+				prompt.Triggered:Connect(function()
+					if not game.Players.LocalPlayer.Character:FindFirstChild(item.Name .. "Tool") and not game.Players.LocalPlayer.Backpack:FindFirstChild(item.Name .. "Tool") then
+						local tool = itemToolsFolder[item.Name .. "Tool"]:Clone()
+						local equipped = false
+						tool.Parent = game.Players.LocalPlayer.Character
+						tool.Equipped:Connect(function()
+							equipped = true
+						end)
+						
+						tool.Unequipped:Connect(function()
+							equipped = false
+						end)
+						
+						local anim = Instance.new("Animation")
+						local anim2 = Instance.new("Animation")
+						anim.AnimationId = 'https://www.roblox.com/Assest?ID=6525854363'
+						anim2.AnimationId = 'https://www.roblox.com/Assest?ID=10526835827'
+						local track 
+
+						track = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(anim2) 
+						track.Priority = Enum.AnimationPriority.Action
+						track.Looped = false 
+						
+						task.spawn(function()
+							while task.wait() do
+								if equipped == true then
+									track:Play()
+								else
+									track:Stop()
+								end
+							end
+						end)
+						
+						item:Destroy()
+					end
+				end)
+			end
+		end
+	end
+	
+	return newRoom
+end
+
+local prevRoom = roomsFolder:FindFirstChild("0")
+local firstDoor = doorNew(prevRoom, 1)
+
+Generate(prevRoom, 2)
+
+--for i=2,150 do
+--	task.wait(0.000000005)
+--	prevRoom = Generate(prevRoom, i)
+--end
