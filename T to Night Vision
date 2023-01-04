@@ -17,13 +17,14 @@ light.Brightness=.2
 effect.Brightness=.5
 effect.TintColor=Color3.new(0, 0.996078, 0)
 effect.Enabled=false
+effect.Name = "nv"
 activate.SoundId="http://roblox.com/asset/?id=131690369"
 activate.MaxDistance=150
 uis.InputBegan:Connect(function(began)
 	if began.KeyCode == Enum.KeyCode.T then
 		if not debounce then
 			debounce = true
-			game.Lighting.ColorCorrection.Enabled=not game.Lighting.ColorCorrection.Enabled
+			game.Lighting.nv.Enabled=not game.Lighting.ColorCorrection.Enabled
 			light.Enabled=not light.Enabled
 			activate:Play()
 			wait(1.45)
