@@ -15,7 +15,7 @@ light.Enabled=false
 light.Range=1000
 light.Brightness=.2
 effect.Brightness=.5
-effect.TintColor=Color3.new(0, 0.996078, 0)
+effect.TintColor=Color3.fromRGB(0, 183, 0)
 effect.Enabled=false
 effect.Name = "nv"
 activate.SoundId="http://roblox.com/asset/?id=131690369"
