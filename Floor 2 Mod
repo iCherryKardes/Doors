@@ -14,8 +14,8 @@ Achievements.Get({
 })
 
 -- Sounds
-game.Workspace.Ambience_Figure.SoundId = game.Workspace.Ambience_FigureIntense.SoundId
-game.Workspace.Ambience_Figure.Volume = "0.7"
+--game.Workspace.Ambience_Figure.SoundId = game.Workspace.Ambience_FigureIntense.SoundId
+--game.Workspace.Ambience_Figure.Volume = "0.7"
 game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1846862303"
 if game.ReplicatedStorage.GameData.LatestRoom.Value == "50" then
 	game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1848156876"
