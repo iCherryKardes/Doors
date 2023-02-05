@@ -17,9 +17,11 @@ Achievements.Get({
 --game.Workspace.Ambience_Figure.SoundId = game.Workspace.Ambience_FigureIntense.SoundId
 --game.Workspace.Ambience_Figure.Volume = "0.7"
 game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1846862303"
-if game.ReplicatedStorage.GameData.LatestRoom.Value == "50" then
-	game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1848156876"
-end
+--game.ReplicatedStorage.GameData.LatestRoom.Changed:Connect(function()
+	--if game.ReplicatedStorage.GameData.LatestRoom.Value > "50" then
+		--game.Workspace.Ambience_Seek.SoundId = "rbxassetid://1848156876"
+	--end
+--end)
 -- Settings
 game.Players.LocalPlayer.PlayerGui.MainUI.Statistics.Frame["Floors Escaped"].Text = "Floors Escaped (2)"
 
